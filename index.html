@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="fr"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,interactive-widget=resizes-content">
+<meta name="theme-color" content="#10141a">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon-192.png">
+<title>CENI Hors-ligne</title>
+<style>
+:root { --bg:#10141a; --pn:#1b222c; --bd:#2f3a48; --tx:#e6eaf0; --mut:#8d99a8; --ac:#5aa9ff; --ok:#7ee2a8; --bad:#ff8a80; --wr:#ffb454; }
+  * { box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  html,body { margin:0; height:100%; overflow:hidden; overflow:clip; overscroll-behavior:none; }
+  body { position:fixed; left:0; top:0; width:100%; height:var(--app-h,100dvh); background:var(--bg); color:var(--tx); font:15px system-ui,"Segoe UI",Roboto,sans-serif; display:flex; flex-direction:column; }
+  button, select, input { font:inherit; color:var(--tx); background:#262f3b; border:1px solid var(--bd); border-radius:8px; padding:7px 10px; }
+  button { cursor:pointer; } button:active { border-color:var(--ac); } button:disabled { opacity:.5; }
+  button.pri { background:#24415f; border-color:var(--ac); font-weight:600; }
+  button.on { background:#24415f; border-color:var(--ac); }
+  input:focus, select:focus { outline:2px solid var(--ac); outline-offset:0; }
+  input:disabled, select:disabled { opacity:.55; }
+  input[type=checkbox], input[type=radio] { width:22px; height:22px; padding:0; }
+  .top { background:var(--pn); border-bottom:1px solid var(--bd); padding:5px 6px; display:flex; gap:6px; align-items:center; flex:none; }
+  .top input#carnetNum { width:100px; min-width:0; flex:1; }
+  #info { font-size:11px; color:var(--mut); padding:2px 8px; background:var(--pn); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; flex:none; }
+  .recs { flex:none; background:var(--pn); border-bottom:1px solid var(--bd); padding:4px 6px; display:flex; gap:4px; overflow-x:auto; align-items:center; font-size:12px; white-space:nowrap; min-height:34px; }
+  .recs .hdr { color:var(--mut); font-size:11px; margin-right:6px; }
+  .c { padding:3px 9px; border-radius:12px; border:1px solid var(--ac); background:#10141a; flex:none; }
+  .c.sent { border-color:#3b7a57; color:var(--ok); } .c.warn { border-color:var(--wr); color:var(--wr); } .c.cur { background:#24415f; }
+  .c.bad { border-color:#e5484d; color:#ff8a80; } .c.todo { border-style:dashed; color:var(--mut); border-color:var(--bd); }
+  #viewer { flex:none; height:var(--imgh,42%); min-height:90px; display:flex; flex-direction:column; background:#0b0e12; }
+  #viewer.hid { display:none; }
+  .tbar { background:var(--pn); padding:3px 4px; display:flex; gap:4px; align-items:center; flex:none; }
+  .tbar button { padding:4px 9px; } .tbar .sp { flex:1; } #cnt { font-size:12px; color:var(--mut); }
+  #stage { position:relative; flex:1; min-height:0; overflow:auto; background:#000; touch-action:pan-x pan-y; -webkit-overflow-scrolling:touch; }
+  #box { position:relative; margin:0 auto; }
+  #img { position:absolute; left:50%; top:50%; max-width:none; transform-origin:center; user-select:none; -webkit-user-drag:none; display:none; }
+  #msg { position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:12px; padding:16px; text-align:center; color:var(--mut); white-space:pre-line; font-size:14px; }
+  #msg.bad { color:var(--bad); }
+  .foot { display:none; }
+  #split { flex:none; height:18px; background:var(--pn); border-top:1px solid var(--bd); border-bottom:1px solid var(--bd); touch-action:none; display:flex; align-items:center; justify-content:center; }
+  #split::after { content:""; width:48px; height:4px; border-radius:2px; background:#4a5666; }
+  #left { flex:1; min-height:0; overflow-y:auto; overflow-x:hidden; padding:8px 12px 0; -webkit-overflow-scrolling:touch; }
+  #f::after { content:""; display:block; height:45vh; }
+  h2 { font-size:15px; margin:14px 0 6px; color:var(--mut); font-weight:600; }
+  .grid { display:block; }
+  .f { display:grid; grid-template-columns:minmax(0,1fr); gap:3px; margin:9px 0; }
+  .f > label { font-size:13px; color:var(--mut); }
+  .f input[type=text], .f input[type=email], .f select { width:100%; padding:10px; font-size:16px; }
+  .inl { display:flex; gap:14px; align-items:center; flex-wrap:wrap; }
+  .inl label { display:flex; gap:7px; align-items:center; color:var(--tx); font-size:15px; padding:4px 0; }
+  .two { display:flex; gap:6px; } .two input:first-child { flex:1; } .two input:last-child { width:70px; }
+  .req::after { content:" *"; color:var(--wr); }
+  .wr { color:var(--wr); } .ok { color:var(--ok); } .bad { color:var(--bad); }
+  .help { color:var(--mut); font-size:12px; line-height:1.5; }
+  .badbox { display:none; border:1px solid #e5484d; background:#2a1315; border-radius:8px; padding:10px; margin:8px 0; }
+  .badbox.open { display:block; }
+  .badbox .row { display:grid; grid-template-columns:90px minmax(0,1fr); gap:6px 10px; align-items:center; margin:6px 0; }
+  #actions { flex:none; background:var(--pn); border-top:1px solid var(--bd); padding:6px; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+  #actions #save { flex:1; padding:11px; font-size:16px; }
+  #actions #saveMsg { width:100%; font-size:12px; min-height:0; }
+  #actions #saveMsg:empty { display:none; }
+  .ov { display:none; position:fixed; inset:0; background:#000b; z-index:50; align-items:flex-start; justify-content:center; padding:3vh 8px; }
+  .ov.open { display:flex; }
+  .pnl { background:var(--pn); border:1px solid var(--bd); border-radius:12px; width:min(560px,100%); max-height:92%; display:flex; flex-direction:column; }
+  .pnl .hd { padding:10px 14px; border-bottom:1px solid var(--bd); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  .pnl .bd { overflow:auto; padding:8px 14px; }
+  .pnl .ft { border-top:1px solid var(--bd); padding:10px 14px; display:flex; gap:8px; flex-wrap:wrap; }
+  .menu button { display:block; width:100%; text-align:left; margin:6px 0; padding:12px; }
+  .menu .dng { border-color:#e5484d; color:#ff8a80; }
+  .cr { border:1px solid var(--bd); border-radius:8px; margin:8px 0; padding:8px 10px; }
+  .cr .t { display:flex; gap:8px; align-items:center; flex-wrap:wrap; }
+  .cr .t b { font-size:15px; } .cr .t .sp { flex:1; } .cr .st { color:var(--mut); font-size:12px; }
+  .cr .fl { display:none; flex-wrap:wrap; gap:5px; margin-top:8px; } .cr.open .fl { display:flex; }
+  .ig { display:grid; grid-template-columns:minmax(0,1fr) 110px; gap:6px 8px; align-items:center; margin:6px 0; font-size:13px; }
+  #toast { position:fixed; left:50%; bottom:86px; transform:translateX(-50%); background:#12301f; color:var(--ok); border:1px solid #3b7a57; border-radius:10px; padding:8px 14px; z-index:80; display:none; max-width:90vw; font-size:13px; }
+  div[style*="2147483647"] { font-size:16px; }
+</style>
+</head>
+<body>
+<div class="top">
+  <button id="menuBtn" title="Menu">☰</button>
+  <button id="carnetsBtn" class="pri" title="Mes carnets et feuilles faites">📚</button>
+  <input id="carnetNum" inputmode="numeric" placeholder="n° carnet" autocomplete="off" enterkeyhint="go">
+  <button id="carnetGo">OK</button>
+  <button id="viewerBtn" title="Afficher / masquer l'image">🖼</button>
+  <select id="stageSel" style="display:none"><option value="1">Saisie 1</option></select>
+  <input id="user" style="display:none"><datalist id="users"></datalist><select id="carnetSel" style="display:none"></select>
+</div>
+<div id="info"></div>
+<div class="recs" id="recs"></div>
+<div id="viewer">
+  <div class="tbar">
+    <button id="rotL" title="Rotation gauche">⟲</button><button id="rotR" title="Rotation droite">⟳</button>
+    <button id="zoomOut">−</button><button id="zoomIn">+</button><button id="fit" title="Ajuster">⤢</button>
+    <button id="follow" class="on" title="L'image défile avec le champ">⇅</button>
+    <span class="sp"></span><span id="cnt"></span>
+  </div>
+  <div id="stage"><div id="box"><img id="img" alt=""></div><div id="msg"><span id="msgText">Chargement…</span><button id="msgBtn" style="display:none"></button></div></div>
+  <div class="foot"><span id="fname"></span><span id="where"></span></div>
+</div>
+<div id="split"></div>
+<div id="left">
+<form id="f" autocomplete="off" onsubmit="return false">
+      <h2>Feuillet</h2>
+      <div class="grid">
+        <div class="f"><label>Numéro carnet</label><input type="text" id="carnetRO" readonly></div>
+        <div class="f"><label class="req" for="numeroLigneInput">Numéro feuillet</label><input type="text" id="numeroLigneInput" maxlength="12" inputmode="numeric" placeholder="ex: 001"></div>
+        <div class="f"><label for="marquageInput">N° carnet feuillet</label><input type="text" id="marquageInput" maxlength="12" inputmode="numeric"></div>
+      </div>
+      <div class="inl" style="margin:10px 0 4px">
+        <button type="button" id="bad" style="border-color:#e5484d;color:#ff8a80" title="Déchiré, illisible, vide, rayé, impossible à traiter…">🚫 Feuillet inexploitable</button>
+        <small class="help">Déchiré, illisible, vide, rayé, impossible à traiter…</small>
+      </div>
+      <div class="badbox" id="badBox">
+        <b>Feuillet inexploitable</b> — retiré du total du carnet au moment de la synchronisation.
+        <div class="row"><label for="badMotif">Motif</label>
+          <select id="badMotif"><option value="">— Choisir —</option><option value="déchiré">Déchiré</option><option value="illisible">Illisible</option><option value="impossible">Impossible à traiter</option><option value="rayé">Rayé</option><option value="vide">Vide</option><option value="autre">Autre</option></select></div>
+        <div class="row"><label for="badRem">Remarque</label><input type="text" id="badRem" maxlength="20" placeholder="obligatoire pour « Autre » (ex: moitié manquante)"></div>
+        <div class="inl"><button type="button" class="pri" id="badOk">Marquer inexploitable</button><button type="button" id="badCancel">Annuler</button></div>
+      </div>
+      <h2>Électeur</h2>
+      <div class="grid">
+        <div class="f"><label class="req" for="nomElect">Nom</label><input type="text" id="nomElect" maxlength="170" data-up="1"></div>
+        <div class="f"><label for="prenomElect">Prénom</label><input type="text" id="prenomElect" maxlength="170"></div>
+        <div class="f"><label for="dateNaiss">Date de naissance <span class="wr">*</span></label><input type="text" id="dateNaiss" maxlength="10" placeholder="JJ/MM/AAAA" inputmode="numeric"></div>
+        <div class="f"><label for="neversElect">Né(e) vers <span class="wr">*</span></label><input type="text" id="neversElect" maxlength="4" inputmode="numeric" placeholder="Année (ex: 1985) — si pas de date"></div>
+        <div class="f"><label class="req" for="lieuNaiss">Lieu de naissance</label><input type="text" id="lieuNaiss" maxlength="60" data-up="1" data-sp="1"></div>
+        <div class="f"><label class="req">Sexe</label>
+          <div class="inl"><label><input type="radio" name="sexe" id="sexeLahy" value="LAHY"> LAHY</label><label><input type="radio" name="sexe" id="sexeVavy" value="VAVY"> VAVY</label></div></div>
+        <div class="f"><label for="handicapElect">Handicap</label>
+          <select id="handicapElect"><option value="">Aucun</option><option>Sourd</option><option>Muet</option><option>Aveugle</option><option>Autre handicap</option></select></div>
+      </div>
+      <h2>Parents</h2>
+      <div class="grid">
+        <div class="f"><label class="req" for="nomPereElect">Nom du père</label><input type="text" id="nomPereElect" maxlength="170">
+          <div class="inl"><label><input type="checkbox" id="feuPere"> Feu</label><label><input type="checkbox" id="piPere"> PI</label></div></div>
+        <div class="f"><label class="req" for="nomMereElect">Nom de la mère</label><input type="text" id="nomMereElect" maxlength="170">
+          <div class="inl"><label><input type="checkbox" id="feueMere"> Feue</label><label><input type="checkbox" id="miMere"> MI</label></div></div>
+      </div>
+      <h2>Adresse et profession</h2>
+      <div class="grid">
+        <div class="f"><label class="req" for="adresseElect">Adresse</label><input type="text" id="adresseElect" maxlength="100" data-up="1" data-sp="1"></div>
+        <div class="f"><label for="hamauElect">Hameau (Secteur/Carreau/…)</label><input type="text" id="hamauElect" maxlength="60" data-up="1" data-sp="1"></div>
+        <div class="f"><label class="req" for="professionElect">Profession</label><input type="text" id="professionElect" maxlength="50" data-up="1">
+          <div class="inl"><label><input type="checkbox" id="professionSans"> Sans profession</label></div></div>
+      </div>
+      <h2>CIN</h2>
+      <div class="grid">
+        <div class="f"><label class="req" for="cinElect">CIN</label><input type="text" id="cinElect" maxlength="12" inputmode="numeric" placeholder="12 chiffres"></div>
+        <div class="f"><label class="req" for="dateDeliv">Date de délivrance</label><input type="text" id="dateDeliv" maxlength="10" placeholder="JJ/MM/AAAA" inputmode="numeric"></div>
+        <div class="f"><label class="req" for="lieuDeliv">Lieu de délivrance</label><input type="text" id="lieuDeliv" maxlength="60" data-up="1" data-sp="1"></div>
+        <div class="f"><label for="numSerieCinPart1">Numéro série CIN</label><div class="two"><input type="text" id="numSerieCinPart1" maxlength="15" data-up="1"><input type="text" id="numSerieCinPart2" maxlength="2" data-up="1"></div></div>
+        <div class="f"><label class="req" for="dRecensement">Date du recensement</label><input type="text" id="dRecensement" maxlength="10" placeholder="JJ/MM/AAAA" inputmode="numeric"></div>
+      </div>
+      <h2>Contact et observation</h2>
+      <div class="grid">
+        <div class="f"><label for="telephoneElect">Numéro téléphone</label><input type="text" id="telephoneElect" maxlength="14" placeholder="03X XX XXX XX"></div>
+        <div class="f"><label for="emailElect">Email</label><input type="email" id="emailElect" maxlength="100"></div>
+        <div class="f"><label class="req" for="Observation">Observation</label>
+          <select id="Observation"><option value="">Sélectionner</option><option value="Nouveau titulaire CNI">Nouveau titulaire CNI</option><option value="Nouveau recensement">Nouveau recensement électeur</option><option value="JSAN/CNI">JSAN/CNI</option><option value="Omis">Omis</option><option value="Détenu">Détenu</option><option value="Réclamation">Réclamation</option></select></div>
+        <div class="f"><label>&nbsp;</label><div class="inl"><label><input type="checkbox" id="anomalieCheckbox"> Signaler une anomalie dans les données</label></div></div>
+      </div>
+
+      <div class="inl" style="margin:16px 0"><button type="button" id="clear">Vider le formulaire</button><button type="button" id="del">🗑 Supprimer ce feuillet</button></div>
+    </form>
+</div>
+<div id="actions">
+  <span id="saveMsg"></span>
+  <button id="prev" title="Image précédente">◀</button>
+  <button id="save" class="pri">💾 Enregistrer</button>
+  <button id="next" title="Image suivante">▶</button>
+</div>
+<div id="toast"></div>
+
+<div class="ov" id="carnetsOv"><div class="pnl">
+  <div class="hd"><b>📚 Mes carnets</b><span id="carnetsInfo" class="help"></span><button id="carnetsX">✕</button></div>
+  <div class="bd" id="carnetsList"></div>
+  <div class="ft"><button id="clrSent">🧹 Vider les feuilles envoyées</button></div>
+</div></div>
+
+<div class="ov" id="menuOv"><div class="pnl">
+  <div class="hd"><b>☰ Menu</b><button id="menuX">✕</button></div>
+  <div class="bd menu">
+    <div class="help" id="menuInfo"></div>
+    <button id="miFolder">📥 Importer un dossier d'images (carnets)</button>
+    <button id="miFiles">🖼 Importer des images (fichiers)</button>
+    <button id="miSync" class="pri">⟳ Synchro interne (sauvegarde dans l'application)</button>
+    <button id="miExport">⬇ Exporter TOUT dans un fichier</button>
+    <button id="miShare">📤 Partager le fichier d'export</button>
+    <button id="miImport">⬆ Importer un fichier d'export</button>
+    <button id="miRestore">♻ Restaurer la dernière synchro interne</button>
+    <button id="miClrSent">🧹 Vider les feuilles déjà envoyées</button>
+    <button id="miClrRecs" class="dng">🗑 Effacer toutes les feuilles saisies</button>
+    <button id="miClrImgs" class="dng">🗑 Effacer toutes les images</button>
+    <button id="miClrAll" class="dng">🗑 Tout effacer (saisies + images + réglages)</button>
+  </div>
+</div></div>
+
+<div class="ov" id="impOv"><div class="pnl">
+  <div class="hd"><b>📥 Importer des images</b><button id="impX">✕</button></div>
+  <div class="bd"><div class="help">Vérifiez le n° de carnet de chaque dossier (déduit du nom du dossier).</div><div id="impList"></div><div id="impProg" class="help"></div></div>
+  <div class="ft"><button id="impGo" class="pri">Importer</button><button id="impCancel">Annuler</button></div>
+</div></div>
+
+<input id="imgPick" type="file" accept="image/*" multiple style="display:none">
+<input id="impFile" type="file" accept=".json,application/json" style="display:none">
+<script src="kv.js"></script>
+<script src="tadidy.js"></script>
+<script src="app.js"></script>
+</body></html>
