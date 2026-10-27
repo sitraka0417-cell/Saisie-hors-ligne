@@ -364,7 +364,7 @@
   const FOLLOW_AL = { sexeLahy: '@sexe', sexeVavy: '@sexe', handicapElect: '@handicap', Observation: '@observation' };
   const followList = () => STOPS.slice(STOPS.indexOf('nomElect'));
   const followPos = id => followList().indexOf(FOLLOW_AL[id] || id);
-  const F_END = 0.85;
+  const F_END = 0.72;
   function followImg(el) {
     if (!follow) return;
     const st = $('stage'), max = st.scrollHeight - st.clientHeight;

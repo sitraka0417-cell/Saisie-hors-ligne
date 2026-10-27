@@ -32,3 +32,8 @@ v1.6
 - Plus de message « saisie en cours » si le formulaire est vide ou déjà enregistré.
 - Carnets : onglets « Mbola tsy vita » / « Vita ».
 - Synchro interne automatique après chaque enregistrement + récupération automatique au démarrage (après mise à jour).
+
+v1.7
+- Défilement de l image plus lent (fin a 72 %).
+- Tadidy : 3 suggestions maximum sur telephone, liste compacte ; plus de clic fantome sur le champ dessous (ex. Sans profession).
+- Donnees conservees et recuperees automatiquement apres mise a jour (voir v1.6).

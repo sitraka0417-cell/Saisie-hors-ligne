@@ -58,19 +58,27 @@
     const COARSE = !!(window.matchMedia && matchMedia('(pointer:coarse)').matches);
     const box = document.createElement('div');
     box.style.cssText = 'position:absolute;z-index:2147483647;background:#fff;color:#000;' +
-      'border:1px solid #888;font:14px sans-serif;display:none;max-height:260px;overflow:auto;box-shadow:0 2px 8px #0004';
+      'border:1px solid #888;font:14px sans-serif;display:none;max-height:' + (COARSE ? '150px' : '260px') + ';overflow:auto;box-shadow:0 2px 8px #0004';
     const list = document.createElement('div');
     const hint = document.createElement('div');
     hint.textContent = '\u2191\u2193 choisir \u00b7 Tab valider \u00b7 Suppr effacer';
     hint.style.cssText = 'padding:3px 10px;font-size:11px;color:#666;background:#f3f3f3;border-top:1px solid #ddd';
     box.appendChild(list);
-    box.appendChild(hint);
+    if (!COARSE) box.appendChild(hint);
     document.documentElement.appendChild(box);
     let cur = null, idx = -1, items = [];
 
     function removeEntry(t) {
       const h = hist[fieldKey(cur)];
       if (h && t in h) { delete h[t]; store(); }
+    }
+    // v1.7 : la liste disparaît dès le toucher ; le « clic » qui suit tombait sur ce qu'il y avait dessous
+    // (ex. la case « Sans profession »). On avale tous les clics / touchers pendant 600 ms.
+    function blockGhost() {
+      const stop = e => { if (box.contains(e.target)) return; e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); };
+      const ev = ['click', 'mousedown', 'mouseup', 'touchend', 'pointerup'];
+      ev.forEach(n => document.addEventListener(n, stop, true));
+      setTimeout(() => ev.forEach(n => document.removeEventListener(n, stop, true)), 600);
     }
     function hide() { box.style.display = 'none'; idx = -1; }
     function fill(t) {
@@ -91,12 +99,12 @@
       const h = hist[fieldKey(el)] || {};
       items = Object.keys(h)
         .filter(t => t.toLowerCase().startsWith(v) && t.toLowerCase() !== v)
-        .sort((a, b) => h[b] - h[a]).slice(0, 8);
+        .sort((a, b) => h[b] - h[a]).slice(0, COARSE ? 3 : 8);   // v1.7 : 3 au maximum sur téléphone (ne cache plus l'image)
       if (!items.length) return hide();
       list.innerHTML = '';
       items.forEach(t => {
         const d = document.createElement('div');
-        d.style.cssText = 'padding:' + (COARSE ? '11px 12px' : '5px 10px') + ';cursor:pointer;display:flex;justify-content:space-between;gap:14px;' + (COARSE ? 'font-size:17px;' : '');
+        d.style.cssText = 'padding:' + (COARSE ? '9px 12px' : '5px 10px') + ';cursor:pointer;display:flex;justify-content:space-between;gap:14px;' + (COARSE ? 'font-size:16px;' : '');
         const label = document.createElement('span');
         label.textContent = t;
         const x = document.createElement('span');
@@ -111,7 +119,8 @@
         d.appendChild(label);
         d.appendChild(x);
         let usedAt = 0;
-        const pick = e => { e.preventDefault(); if (Date.now() - usedAt < 400) return; usedAt = Date.now(); fill(t); };
+        const pick = e => { e.preventDefault(); if (Date.now() - usedAt < 400) return; usedAt = Date.now(); blockGhost(); fill(t); };
+        d.addEventListener('touchend', e => { e.preventDefault(); });
         d.addEventListener('pointerdown', pick);
         d.addEventListener('mousedown', pick);
         list.appendChild(d);
