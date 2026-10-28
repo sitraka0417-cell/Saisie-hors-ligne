@@ -1,5 +1,5 @@
 // Service worker : l'application fonctionne sans réseau (cache de l'application).
-const V = 'ceni-hl-v8';
+const V = 'ceni-hl-v9';
 const FILES = ['./', './index.html', './app.js', './kv.js', './jszip.min.js', './tadidy.js', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 self.addEventListener('install', e => { e.waitUntil(caches.open(V).then(c => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', e => { e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== V && k !== 'ceni-hl-data').map(k => caches.delete(k)))).then(() => self.clients.claim())); });

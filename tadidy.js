@@ -110,16 +110,22 @@
         const x = document.createElement('span');
         x.textContent = '\u2715';
         x.title = 'Supprimer cette suggestion';
-        x.style.cssText = 'color:#b33;padding:0 4px;cursor:pointer';
-        x.addEventListener('mousedown', e => {
+        x.style.cssText = 'color:#c22;font-weight:700;cursor:pointer;' + (COARSE ? 'padding:8px 12px;margin:-8px -6px -8px 0;font-size:18px;' : 'padding:0 4px;');
+        // v1.7.1 : ✕ réagit au toucher (pointerdown) ; avant, seul « mousedown » était écouté (jamais envoyé au doigt)
+        // et le toucher remontait à la ligne, qui remplissait le champ à la place de supprimer.
+        let xAt = 0;
+        const del = e => {
           e.preventDefault(); e.stopPropagation();
-          removeEntry(t);
-          show(cur);
-        });
+          if (Date.now() - xAt < 400) return; xAt = Date.now();
+          blockGhost(); removeEntry(t); show(cur);
+        };
+        x.addEventListener('pointerdown', del);
+        x.addEventListener('mousedown', del);
+        x.addEventListener('touchend', e => { e.preventDefault(); e.stopPropagation(); });
         d.appendChild(label);
         d.appendChild(x);
         let usedAt = 0;
-        const pick = e => { e.preventDefault(); if (Date.now() - usedAt < 400) return; usedAt = Date.now(); blockGhost(); fill(t); };
+        const pick = e => { if (e.target === x) return; e.preventDefault(); if (Date.now() - usedAt < 400) return; usedAt = Date.now(); blockGhost(); fill(t); };
         d.addEventListener('touchend', e => { e.preventDefault(); });
         d.addEventListener('pointerdown', pick);
         d.addEventListener('mousedown', pick);
